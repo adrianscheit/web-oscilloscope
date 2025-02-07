@@ -1,0 +1,14 @@
+{
+  "name": "web-osciloscope",
+  "version": "0.0.1",
+  "description": "WEB Osciloscope",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "typescript": "5"
+  }
+}
