@@ -1,10 +1,11 @@
 const paused = document.getElementById('paused') as HTMLInputElement;
 const yScale = document.getElementById('paused') as HTMLInputElement;
 const audioCtx = new AudioContext();
+audioCtx.suspend();
 const colors = ['#f004', '#0f04', '#00f4', '#ff04'];
 
 class Analyzer {
-    static readonly fftSize = 2048;
+    static readonly fftSize: 32 | 64 | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 = 2048;
 
     readonly analyzer: AnalyserNode = audioCtx.createAnalyser();
     readonly data = new Uint8Array(Analyzer.fftSize);
@@ -65,13 +66,13 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
             canvasCtx.fillRect(0, 0, canvas.width, 256);
             analysers.forEach((analyser) => analyser.draw(canvasCtx));
             requestAnimationFrame(draw);
+        } else {
+            audioCtx.suspend();
         }
     }
 
     const pausedHandler = () => {
-        if (paused.checked) {
-            audioCtx.suspend();
-        } else {
+        if (!paused.checked) {
             audioCtx.resume();
             draw();
         }

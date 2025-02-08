@@ -2,8 +2,12 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
     <title>WEB Oscilloscope</title>
+    <meta charset="utf-8" />
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+    <meta name="description" content="GitHub pages with Oscilloscope tool" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="Adrian Scheit" />
     <style>
         #oscilloscope {
             width: 100%;
@@ -13,6 +17,12 @@
 </head>
 
 <body>
+    <p>
+        Notice:
+        This page does not use cookies.
+        This page does not save any user data.
+        This page is not any comercial page.
+    </p>
     <label><input id="paused" type="checkbox" /> Paused</label>
     <label><input id="yScale" type="range" min="-80" max="0" step="1" value="-30" disabled /> Y scale</label>
     <canvas id="oscilloscope"></canvas>
