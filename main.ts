@@ -3,7 +3,7 @@ const yScale = document.getElementById('yScale') as HTMLInputElement;
 const fftSizeInput = document.querySelector('[name=fftSize]') as HTMLInputElement;
 const audioCtx = new AudioContext();
 audioCtx.suspend();
-const colors = ['#f00d', '#0f0d', '#00fd', '#ff0d'];
+const colors = ['#f00', '#0f0', '#00f', '#aa0', '#0aa', '#a0a'];
 const infoText: Text = document.getElementById('info')!.appendChild(document.createTextNode(''));
 
 const getGetParams = (): ReadonlyMap<string, string> => {
@@ -72,13 +72,22 @@ class Analyzer {
     }
 
     drawFft(canvasCtx: CanvasRenderingContext2D): void {
+        let max = 0, maxI = 0;
         canvasCtx.beginPath();
         canvasCtx.strokeStyle = this.strokeStyle;
         canvasCtx.moveTo(0, this.fftData[0]);
         for (let i = 1; i < this.fftData.length; i++) {
             canvasCtx.lineTo(i, 255 - this.fftData[i]);
+            if (this.fftData[i] > max) {
+                max = this.fftData[i];
+                maxI = i;
+            }
         }
         canvasCtx.stroke();
+        const previousFillStyle = canvasCtx.fillStyle;
+        canvasCtx.fillStyle = this.strokeStyle;
+        canvasCtx.fillText(`${(maxI + 0.5) * audioCtx.sampleRate / Analyzer.fftSize}Hz`, maxI, 20);
+        canvasCtx.fillStyle = previousFillStyle;
     }
 }
 
@@ -97,19 +106,19 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
     console.log(source, splitter, analysers);
 
     const canvas = document.getElementById("oscilloscope") as HTMLCanvasElement;
-    const fftCanvase = document.getElementById("fft") as HTMLCanvasElement;
+    const fftCanvas = document.getElementById("fft") as HTMLCanvasElement;
     canvas.width = Analyzer.fftSize;
-    fftCanvase.width = analysers[0].analyzer.frequencyBinCount;
+    fftCanvas.width = analysers[0].analyzer.frequencyBinCount;
     canvas.height = 300;
-    fftCanvase.height = 300;
+    fftCanvas.height = 300;
     const canvasCtx = canvas.getContext("2d")!;
-    const fftCanvasCtx = fftCanvase.getContext("2d")!;
-    canvasCtx.font = '24px sans-serif'
+    const fftCanvasCtx = fftCanvas.getContext("2d")!;
+
+    canvasCtx.font = '20px sans-serif';
     canvasCtx.fillStyle = "#000";
-    fftCanvasCtx.fillStyle = "#000";
     for (let i = 0; true; i += 1) {
         const x = i * audioCtx.sampleRate / 1000;
-        if (x >= Analyzer.fftSize) {
+        if (x >= canvas.width) {
             break;
         }
         canvasCtx.fillRect(x, 256, 1, 300 - 256);
@@ -117,8 +126,19 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
             canvasCtx.fillText(`${i}ms`, x + 1, 300);
         }
     }
+    fftCanvasCtx.font = '20px sans-serif';
+    fftCanvasCtx.fillStyle = "#000";
+    for (let i = 0; true; i += 1) {
+        const x = 1000 * i * Analyzer.fftSize / audioCtx.sampleRate;
+        if (x >= fftCanvas.width) {
+            break;
+        }
+        fftCanvasCtx.fillRect(x, 256, 1, 300 - 256);
+        fftCanvasCtx.fillText(`${i}kHz`, x + 1, 300);
+    }
 
     canvasCtx.fillStyle = "#eee";
+    fftCanvasCtx.fillStyle = "#eee";
     canvasCtx.lineWidth = 1;
     function draw(): void {
         if (!paused.checked) {
