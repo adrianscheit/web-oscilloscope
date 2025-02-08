@@ -3,7 +3,7 @@ const yScale = document.getElementById('yScale') as HTMLInputElement;
 const fftSizeInput = document.querySelector('[name=fftSize]') as HTMLInputElement;
 const audioCtx = new AudioContext();
 audioCtx.suspend();
-const colors = ['#f004', '#0f04', '#00f4', '#ff04'];
+const colors = ['#f00d', '#0f0d', '#00fd', '#ff0d'];
 const infoText: Text = document.getElementById('info')!.appendChild(document.createTextNode(''));
 
 const getGetParams = (): ReadonlyMap<string, string> => {
@@ -31,6 +31,7 @@ class Analyzer {
     readonly gain: GainNode = audioCtx.createGain();
     readonly analyzer: AnalyserNode = audioCtx.createAnalyser();
     readonly data = new Uint8Array(Analyzer.fftSize);
+    readonly fftData = new Uint8Array(this.analyzer.frequencyBinCount);
     readonly gainControl = document.createElement('label');
 
     constructor(private readonly strokeStyle: string) {
@@ -56,12 +57,26 @@ class Analyzer {
         this.analyzer.getByteTimeDomainData(this.data);
     }
 
+    getFftData(): void {
+        this.analyzer.getByteFrequencyData(this.fftData);
+    }
+
     draw(canvasCtx: CanvasRenderingContext2D): void {
         canvasCtx.beginPath();
         canvasCtx.strokeStyle = this.strokeStyle;
         canvasCtx.moveTo(0, this.data[0]);
-        for (let i = 1; i < Analyzer.fftSize; i++) {
+        for (let i = 1; i < this.data.length; i++) {
             canvasCtx.lineTo(i, this.data[i]);
+        }
+        canvasCtx.stroke();
+    }
+
+    drawFft(canvasCtx: CanvasRenderingContext2D): void {
+        canvasCtx.beginPath();
+        canvasCtx.strokeStyle = this.strokeStyle;
+        canvasCtx.moveTo(0, this.fftData[0]);
+        for (let i = 1; i < this.fftData.length; i++) {
+            canvasCtx.lineTo(i, 255 - this.fftData[i]);
         }
         canvasCtx.stroke();
     }
@@ -82,11 +97,16 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
     console.log(source, splitter, analysers);
 
     const canvas = document.getElementById("oscilloscope") as HTMLCanvasElement;
+    const fftCanvase = document.getElementById("fft") as HTMLCanvasElement;
     canvas.width = Analyzer.fftSize;
+    fftCanvase.width = analysers[0].analyzer.frequencyBinCount;
     canvas.height = 300;
+    fftCanvase.height = 300;
     const canvasCtx = canvas.getContext("2d")!;
+    const fftCanvasCtx = fftCanvase.getContext("2d")!;
     canvasCtx.font = '24px sans-serif'
     canvasCtx.fillStyle = "#000";
+    fftCanvasCtx.fillStyle = "#000";
     for (let i = 0; true; i += 1) {
         const x = i * audioCtx.sampleRate / 1000;
         if (x >= Analyzer.fftSize) {
@@ -103,8 +123,11 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
     function draw(): void {
         if (!paused.checked) {
             analysers.forEach((analyser) => analyser.getData());
-            canvasCtx.fillRect(0, 0, canvas.width, 256);
+            canvasCtx.fillRect(0, 0, Analyzer.fftSize, 256);
             analysers.forEach((analyser) => analyser.draw(canvasCtx));
+            analysers.forEach((analyser) => analyser.getFftData());
+            fftCanvasCtx.fillRect(0, 0, Analyzer.fftSize, 256);
+            analysers.forEach((analyser) => analyser.drawFft(fftCanvasCtx));
             requestAnimationFrame(draw);
         } else {
             audioCtx.suspend();
