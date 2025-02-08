@@ -1,12 +1,32 @@
 const paused = document.getElementById('paused') as HTMLInputElement;
-const yScale = document.getElementById('paused') as HTMLInputElement;
+const yScale = document.getElementById('yScale') as HTMLInputElement;
+const fftSizeInput = document.querySelector('[name=fftSize]') as HTMLInputElement;
 const audioCtx = new AudioContext();
 audioCtx.suspend();
 const colors = ['#f004', '#0f04', '#00f4', '#ff04'];
-const infoText: Text = document.getElementById('info')!.appendChild(document.createTextNode(''))
+const infoText: Text = document.getElementById('info')!.appendChild(document.createTextNode(''));
+
+const getGetParams = (): ReadonlyMap<string, string> => {
+    const result = new Map<string, string>();
+    const search = window.location.search;
+    console.log(search);
+    if (search) {
+        for (const segement of search.slice(1).split('&')) {
+            const eqIndex = segement.indexOf('=');
+            const name = segement.substring(0, eqIndex);
+            const value = segement.substring(eqIndex + 1);
+            result.set(name, value);
+            (document.querySelector(`[name="${name}"]`) as HTMLInputElement).value = value;
+        }
+    }
+    return result;
+};
+const getParmas: ReadonlyMap<string, string> = getGetParams();
+console.log(getParmas);
+
 
 class Analyzer {
-    static readonly fftSize: 32 | 64 | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 = 2048;
+    static readonly fftSize: number = parseInt(fftSizeInput.value);
 
     readonly analyzer: AnalyserNode = audioCtx.createAnalyser();
     readonly data = new Uint8Array(Analyzer.fftSize);
