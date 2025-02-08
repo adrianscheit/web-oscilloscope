@@ -31,13 +31,14 @@ class Analyzer {
     readonly gain: GainNode = audioCtx.createGain();
     readonly analyzer: AnalyserNode = audioCtx.createAnalyser();
     readonly data = new Uint8Array(Analyzer.fftSize);
-    readonly fftData = new Uint8Array(this.analyzer.frequencyBinCount);
+    readonly fftData: Uint8Array;
     readonly gainControl = document.createElement('label');
 
     constructor(private readonly strokeStyle: string) {
         this.analyzer.fftSize = Analyzer.fftSize;
         this.analyzer.smoothingTimeConstant = 0;
         this.analyzer.channelCount = 1;
+        this.fftData = new Uint8Array(this.analyzer.frequencyBinCount);
         this.gain.channelCount = 1;
         this.gain.connect(this.analyzer);
 
@@ -75,7 +76,7 @@ class Analyzer {
         let max = 0, maxI = 0;
         canvasCtx.beginPath();
         canvasCtx.strokeStyle = this.strokeStyle;
-        canvasCtx.moveTo(0, this.fftData[0]);
+        canvasCtx.moveTo(0, 255 - this.fftData[0]);
         for (let i = 1; i < this.fftData.length; i++) {
             canvasCtx.lineTo(i, 255 - this.fftData[i]);
             if (this.fftData[i] > max) {
