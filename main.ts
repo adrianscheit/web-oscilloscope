@@ -28,13 +28,28 @@ console.log(getParmas);
 class Analyzer {
     static readonly fftSize: number = parseInt(fftSizeInput.value);
 
+    readonly gain: GainNode = audioCtx.createGain();
     readonly analyzer: AnalyserNode = audioCtx.createAnalyser();
     readonly data = new Uint8Array(Analyzer.fftSize);
+    readonly gainControl = document.createElement('label');
 
     constructor(private readonly strokeStyle: string) {
         this.analyzer.fftSize = Analyzer.fftSize;
         this.analyzer.smoothingTimeConstant = 0;
         this.analyzer.channelCount = 1;
+        this.gain.channelCount = 1;
+        this.gain.connect(this.analyzer);
+
+        this.gainControl.style.color = strokeStyle;
+        this.gainControl.appendChild(document.createTextNode('yScale'));
+        const input = document.createElement('input');
+        input.type = 'range';
+        input.min = '1';
+        input.max = '10';
+        input.step = '0.1';
+        input.value = '1';
+        this.gainControl.appendChild(input);
+        input.addEventListener('change', () => this.gain.gain.value = +input.value);
     }
 
     getData(): void {
@@ -55,21 +70,16 @@ class Analyzer {
 navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((mediaStream: MediaStream) => {
     const source = audioCtx.createMediaStreamSource(mediaStream);
     infoText.nodeValue = `There is audio soruce of ${source.numberOfOutputs} outputs and ${source.channelCount} channels`;
-
     const splitter = audioCtx.createChannelSplitter(source.channelCount);
     const analysers: Analyzer[] = Array(source.channelCount)
         .fill(undefined)
         .map((_, index) => new Analyzer(colors[index % 4]));
     analysers.forEach((analyser, index) => {
-        splitter.connect(analyser.analyzer, index);
+        splitter.connect(analyser.gain, index);
+        document.getElementById('gains')!.appendChild(analyser.gainControl);
     });
     source.connect(splitter);
     console.log(source, splitter, analysers);
-
-    yScale.addEventListener('change', () => {
-        const value = Math.floor(+yScale.value);
-        analysers.forEach((it) => it.analyzer.maxDecibels = value);
-    });
 
     const canvas = document.getElementById("oscilloscope") as HTMLCanvasElement;
     canvas.width = Analyzer.fftSize;
