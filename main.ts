@@ -3,6 +3,7 @@ const yScale = document.getElementById('paused') as HTMLInputElement;
 const audioCtx = new AudioContext();
 audioCtx.suspend();
 const colors = ['#f004', '#0f04', '#00f4', '#ff04'];
+const infoText: Text = document.getElementById('info')!.appendChild(document.createTextNode(''))
 
 class Analyzer {
     static readonly fftSize: 32 | 64 | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 = 2048;
@@ -33,6 +34,8 @@ class Analyzer {
 
 navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((mediaStream: MediaStream) => {
     const source = audioCtx.createMediaStreamSource(mediaStream);
+    infoText.nodeValue = `There is audio soruce of ${source.numberOfOutputs} outputs and ${source.channelCount} channels`;
+
     const splitter = audioCtx.createChannelSplitter(source.channelCount);
     const analysers: Analyzer[] = Array(source.channelCount)
         .fill(undefined)
@@ -44,7 +47,7 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
     console.log(source, splitter, analysers);
 
     yScale.addEventListener('change', () => {
-        const value = +yScale.value;
+        const value = Math.floor(+yScale.value);
         analysers.forEach((it) => it.analyzer.maxDecibels = value);
     });
 
