@@ -57,9 +57,15 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
     const canvasCtx = canvas.getContext("2d")!;
     canvasCtx.font = '24px sans-serif'
     canvasCtx.fillStyle = "#000";
-    for (let i = 0; i < Analyzer.fftSize; i += 150) {
-        canvasCtx.fillRect(i - 1, 256, 1, 300 - 256);
-        canvasCtx.fillText(`${Math.round(10000 * i / audioCtx.sampleRate) / 10}ms`, i + 1, 300);
+    for (let i = 0; true; i += 1) {
+        const x = i * audioCtx.sampleRate / 1000;
+        if (x >= Analyzer.fftSize) {
+            break;
+        }
+        canvasCtx.fillRect(x, 256, 1, 300 - 256);
+        if (i % 5 === 0) {
+            canvasCtx.fillText(`${i}ms`, x + 1, 300);
+        }
     }
 
     canvasCtx.fillStyle = "#eee";
