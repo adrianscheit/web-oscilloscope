@@ -55,7 +55,7 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
     canvasCtx.font = '24px sans-serif'
     canvasCtx.fillStyle = "#000";
     for (let i = 0; i < Analyzer.fftSize; i += 150) {
-        canvasCtx.fillRect(i - 1, 300, 1, 300 - 256);
+        canvasCtx.fillRect(i - 1, 256, 1, 300 - 256);
         canvasCtx.fillText(`${Math.round(10000 * i / audioCtx.sampleRate) / 10}ms`, i + 1, 300);
     }
 
