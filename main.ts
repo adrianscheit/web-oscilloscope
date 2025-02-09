@@ -62,12 +62,24 @@ class Analyzer {
         this.analyzer.getByteFrequencyData(this.fftData);
     }
 
+    calc0Shift(): number {
+        const middleIndex = Math.floor(this.data.length / 2);
+        const maxShift = Analyzer.fftSize / 10;
+        for (let shift = 1; shift < maxShift; ++shift) {
+            if (this.data[middleIndex + shift - 1] < 128 && this.data[middleIndex + shift] >= 128) {
+                return shift;
+            }
+        }
+        return 0;
+    }
+
     draw(canvasCtx: CanvasRenderingContext2D): void {
         canvasCtx.beginPath();
         canvasCtx.strokeStyle = this.strokeStyle;
-        canvasCtx.moveTo(0, this.data[0]);
-        for (let i = 1; i < this.data.length; i++) {
-            canvasCtx.lineTo(i, this.data[i]);
+        const shift = this.calc0Shift();
+        canvasCtx.moveTo(0, this.data[shift]);
+        for (let i = shift + 1; i < this.data.length; i++) {
+            canvasCtx.lineTo(i - shift, this.data[i]);
         }
         canvasCtx.stroke();
     }
