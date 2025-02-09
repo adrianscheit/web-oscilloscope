@@ -1,6 +1,7 @@
 const paused = document.getElementById('paused') as HTMLInputElement;
 const yScale = document.getElementById('yScale') as HTMLInputElement;
 const fftSizeInput = document.querySelector('[name=fftSize]') as HTMLInputElement;
+const xStabilization = document.querySelector('[name=xStabilization]') as HTMLInputElement;
 const audioCtx = new AudioContext();
 audioCtx.suspend();
 const colors = ['#f00', '#0f0', '#00f', '#aa0', '#0aa', '#a0a'];
@@ -27,6 +28,9 @@ console.log(getParmas);
 
 class Analyzer {
     static readonly fftSize: number = parseInt(fftSizeInput.value);
+    static readonly dataMiddleIndex = Math.floor(this.fftSize / 2);
+    static readonly xStabilization: number = parseInt(xStabilization.value);
+    static readonly maxShift = this.fftSize / this.xStabilization;
 
     readonly gain: GainNode = audioCtx.createGain();
     readonly analyzer: AnalyserNode = audioCtx.createAnalyser();
@@ -63,10 +67,8 @@ class Analyzer {
     }
 
     calc0Shift(): number {
-        const middleIndex = Math.floor(this.data.length / 2);
-        const maxShift = Analyzer.fftSize / 10;
-        for (let shift = 1; shift < maxShift; ++shift) {
-            if (this.data[middleIndex + shift - 1] < 128 && this.data[middleIndex + shift] >= 128) {
+        for (let shift = 1; shift < Analyzer.maxShift; ++shift) {
+            if (this.data[Analyzer.dataMiddleIndex + shift - 1] < 128 && this.data[Analyzer.dataMiddleIndex + shift] >= 128) {
                 return shift;
             }
         }
@@ -130,7 +132,7 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
     canvasCtx.font = '20px sans-serif';
     canvasCtx.fillStyle = "#000";
     for (let i = 0; true; i += 1) {
-        const x = i * audioCtx.sampleRate / 1000;
+        const x = i * audioCtx.sampleRate / 1000 + Analyzer.dataMiddleIndex;
         if (x >= canvas.width) {
             break;
         }
