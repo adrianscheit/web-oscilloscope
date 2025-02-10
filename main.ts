@@ -91,6 +91,7 @@ class Analyzer {
             }
         }
         ctx.stroke();
+
         const previousFillStyle = ctx.fillStyle;
         ctx.fillStyle = this.strokeStyle;
         ctx.fillText(`${(maxI + 0.5) * audioContext.sampleRate / Analyzer.fftSize}Hz`, maxI, 20);
@@ -99,7 +100,7 @@ class Analyzer {
 
     private createGainControl(): void {
         this.gainControl.style.color = this.strokeStyle;
-        this.gainControl.appendChild(document.createTextNode('GAIN'));
+        this.gainControl.appendChild(document.createTextNode('GAIN: 1'));
         const input = this.gainControl.appendChild(document.createElement('input'));
         input.type = 'range';
         input.min = '1';
@@ -107,6 +108,7 @@ class Analyzer {
         input.step = '0.1';
         input.value = '1';
         input.addEventListener('change', () => this.gain.gain.value = +input.value);
+        this.gainControl.appendChild(document.createTextNode(input.max));
     }
 }
 
