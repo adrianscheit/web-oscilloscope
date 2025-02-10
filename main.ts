@@ -66,7 +66,6 @@ class Analyzer {
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
-        ctx.fillRect(0, 0, ctx.canvas.width, 256);
         ctx.beginPath();
         ctx.strokeStyle = this.strokeStyle;
         const shift = this.calc0Shift();
@@ -137,44 +136,46 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
     source.connect(splitter);
     console.log(source, splitter, analysers);
 
-    const canvas = document.getElementById("oscilloscope") as HTMLCanvasElement;
+    const oscilloscopeCanvas = document.getElementById("oscilloscope") as HTMLCanvasElement;
     const fftCanvas = document.getElementById("fft") as HTMLCanvasElement;
-    canvas.width = Analyzer.fftSize;
+    oscilloscopeCanvas.width = Analyzer.fftSize;
     fftCanvas.width = analysers[0].analyzer.frequencyBinCount;
-    canvas.height = 300;
+    oscilloscopeCanvas.height = 300;
     fftCanvas.height = 300;
-    const canvasCtx = canvas.getContext("2d")!;
-    const fftCanvasCtx = fftCanvas.getContext("2d")!;
+    const oscilloscopeContext = oscilloscopeCanvas.getContext("2d")!;
+    const fftContext = fftCanvas.getContext("2d")!;
 
-    canvasCtx.font = '20px sans-serif';
-    canvasCtx.fillStyle = "#000";
+    oscilloscopeContext.font = '20px sans-serif';
+    oscilloscopeContext.fillStyle = "#000";
     for (let i = -20; true; i += 1) {
         const x = i * audioContext.sampleRate / 1000 + Analyzer.dataMiddleIndex;
-        if (!drawXInfo(canvasCtx, x, i % 5 ? '' : `${i}ms`)) {
+        if (!drawXInfo(oscilloscopeContext, x, i % 5 ? '' : `${i}ms`)) {
             break;
         }
     }
-    fftCanvasCtx.font = '20px sans-serif';
-    fftCanvasCtx.fillStyle = "#000";
+    fftContext.font = '20px sans-serif';
+    fftContext.fillStyle = "#000";
     for (let i = 0; true; i += 1) {
         const x = 1000 * i * Analyzer.fftSize / audioContext.sampleRate;
-        if (!drawXInfo(fftCanvasCtx, x, `${i}kHz`)) {
+        if (!drawXInfo(fftContext, x, `${i}kHz`)) {
             break;
         }
     }
 
-    canvasCtx.fillStyle = "#eee";
-    fftCanvasCtx.fillStyle = "#eee";
-    canvasCtx.lineWidth = 1;
+    oscilloscopeContext.fillStyle = "#eee";
+    fftContext.fillStyle = "#eee";
+    oscilloscopeContext.lineWidth = 1;
     function draw(): void {
         if (!paused.checked) {
             analysers.forEach((analyser) => {
                 analyser.getData();
                 analyser.getFftData();
             });
+            oscilloscopeContext.fillRect(0, 0, oscilloscopeContext.canvas.width, 256);
+            fftContext.fillRect(0, 0, fftContext.canvas.width, 256);
             analysers.forEach((analyser) => {
-                analyser.draw(canvasCtx);
-                analyser.drawFft(fftCanvasCtx);
+                analyser.draw(oscilloscopeContext);
+                analyser.drawFft(fftContext);
             });
             requestAnimationFrame(draw);
         } else {
