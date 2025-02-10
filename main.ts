@@ -123,7 +123,8 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
         ${source.numberOfOutputs} outputs,
         ${source.channelCount} channels,
         ${audioContext.sampleRate} sample rate,
-        ${1000 * Analyzer.fftSize / audioContext.sampleRate}ms oscilloscope view width
+        ${(1000 * Analyzer.fftSize / audioContext.sampleRate).toFixed(3)}ms oscilloscope view width,
+        0-${audioContext.sampleRate / 2000}kHz frequency range, with ${(audioContext.sampleRate / Analyzer.fftSize).toFixed(3)}Hz step,
         `;
     const splitter = audioContext.createChannelSplitter(source.channelCount);
     const analysers: Analyzer[] = Array(source.channelCount)
@@ -149,7 +150,7 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
     oscilloscopeContext.font = '20px sans-serif';
     oscilloscopeContext.fillStyle = "#000";
     for (let i = -20; drawXInfo(oscilloscopeContext, (i * audioContext.sampleRate / 1000 + Analyzer.dataMiddleIndex), i % 5 ? '' : `${i}ms`); i += 1) { }
-    
+
     fftContext.font = '20px sans-serif';
     fftContext.fillStyle = "#000";
     for (let i = 0; drawXInfo(fftContext, (1000 * i * Analyzer.fftSize / audioContext.sampleRate), `${i}kHz`); i += 1) { }
