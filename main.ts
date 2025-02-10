@@ -146,7 +146,7 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
 
     canvasCtx.font = '20px sans-serif';
     canvasCtx.fillStyle = "#000";
-    for (let i = 0; true; i += 1) {
+    for (let i = -20; true; i += 1) {
         const x = i * audioContext.sampleRate / 1000 + Analyzer.dataMiddleIndex;
         if (!drawXInfo(canvasCtx, x, i % 5 ? '' : `${i}ms`)) {
             break;
