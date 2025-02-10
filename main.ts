@@ -58,7 +58,7 @@ class Analyzer {
 
     calc0Shift(): number {
         for (let shift = 1; shift < Analyzer.maxShift; ++shift) {
-            if (this.data[Analyzer.dataMiddleIndex + shift - 1] < 128 && this.data[Analyzer.dataMiddleIndex + shift] >= 128) {
+            if (this.data[Analyzer.dataMiddleIndex + shift - 1] > 128 && this.data[Analyzer.dataMiddleIndex + shift] <= 128) {
                 return shift;
             }
         }
@@ -66,9 +66,9 @@ class Analyzer {
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
-        ctx.beginPath();
-        ctx.strokeStyle = this.strokeStyle;
         const shift = this.calc0Shift();
+        ctx.strokeStyle = this.strokeStyle;
+        ctx.beginPath();
         ctx.moveTo(0, this.data[shift]);
         for (let i = shift + 1; i < this.data.length; i++) {
             ctx.lineTo(i - shift, this.data[i]);
@@ -77,10 +77,10 @@ class Analyzer {
     }
 
     drawFft(ctx: CanvasRenderingContext2D): void {
-        let maxI = 0, max = this.fftData[maxI];
-        ctx.fillRect(0, 0, ctx.canvas.width, 256);
-        ctx.beginPath();
+        let maxI = 0;
+        let max = this.fftData[maxI];
         ctx.strokeStyle = this.strokeStyle;
+        ctx.beginPath();
         ctx.moveTo(0, 255 - this.fftData[0]);
         for (let i = 1; i < this.fftData.length; i++) {
             ctx.lineTo(i, 255 - this.fftData[i]);
@@ -137,30 +137,22 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
     console.log(source, splitter, analysers);
 
     const oscilloscopeCanvas = document.getElementById("oscilloscope") as HTMLCanvasElement;
-    const fftCanvas = document.getElementById("fft") as HTMLCanvasElement;
     oscilloscopeCanvas.width = Analyzer.fftSize;
-    fftCanvas.width = analysers[0].analyzer.frequencyBinCount;
     oscilloscopeCanvas.height = 300;
-    fftCanvas.height = 300;
     const oscilloscopeContext = oscilloscopeCanvas.getContext("2d")!;
+
+    const fftCanvas = document.getElementById("fft") as HTMLCanvasElement;
+    fftCanvas.width = analysers[0].fftData.length;
+    fftCanvas.height = 300;
     const fftContext = fftCanvas.getContext("2d")!;
 
     oscilloscopeContext.font = '20px sans-serif';
     oscilloscopeContext.fillStyle = "#000";
-    for (let i = -20; true; i += 1) {
-        const x = i * audioContext.sampleRate / 1000 + Analyzer.dataMiddleIndex;
-        if (!drawXInfo(oscilloscopeContext, x, i % 5 ? '' : `${i}ms`)) {
-            break;
-        }
-    }
+    for (let i = -20; drawXInfo(oscilloscopeContext, (i * audioContext.sampleRate / 1000 + Analyzer.dataMiddleIndex), i % 5 ? '' : `${i}ms`); i += 1) { }
+    
     fftContext.font = '20px sans-serif';
     fftContext.fillStyle = "#000";
-    for (let i = 0; true; i += 1) {
-        const x = 1000 * i * Analyzer.fftSize / audioContext.sampleRate;
-        if (!drawXInfo(fftContext, x, `${i}kHz`)) {
-            break;
-        }
-    }
+    for (let i = 0; drawXInfo(fftContext, (1000 * i * Analyzer.fftSize / audioContext.sampleRate), `${i}kHz`); i += 1) { }
 
     oscilloscopeContext.fillStyle = "#eee";
     fftContext.fillStyle = "#eee";
@@ -171,8 +163,10 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: undefined } }).then((me
                 analyser.getData();
                 analyser.getFftData();
             });
+
             oscilloscopeContext.fillRect(0, 0, oscilloscopeContext.canvas.width, 256);
             fftContext.fillRect(0, 0, fftContext.canvas.width, 256);
+
             analysers.forEach((analyser) => {
                 analyser.draw(oscilloscopeContext);
                 analyser.drawFft(fftContext);
